@@ -118,6 +118,54 @@ static void expect_outcome_u64(const char *input, int base, ffc_outcome expected
   }
 }
 
+static void expect_outcome_i32_options(const char *input, int base, ffc_parse_options options, ffc_outcome expected_outcome) {
+  size_t len = strlen(input);
+  char *pend = (char*)(input + len);
+  int32_t out = 0;
+  ffc_result r = ffc_from_chars_i32_options(input, pend, base, &out, options);
+  if (r.outcome != expected_outcome) {
+    fprintf(stderr, "FAIL i32 \"%s\" base %d: got outcome %d, expected %d\n",
+            input, base, r.outcome, expected_outcome);
+    FAILS++;
+  }
+}
+
+static void expect_outcome_u32_options(const char *input, int base, ffc_parse_options options, ffc_outcome expected_outcome) {
+  size_t len = strlen(input);
+  char *pend = (char*)(input + len);
+  uint32_t out = 0;
+  ffc_result r = ffc_from_chars_u32_options(input, pend, base, &out, options);
+  if (r.outcome != expected_outcome) {
+    fprintf(stderr, "FAIL u32 \"%s\" base %d: got outcome %d, expected %d\n",
+            input, base, r.outcome, expected_outcome);
+    FAILS++;
+  }
+}
+
+static void expect_outcome_i64_options(const char *input, int base, ffc_parse_options options, ffc_outcome expected_outcome) {
+  size_t len = strlen(input);
+  char *pend = (char*)(input + len);
+  int64_t out = 0;
+  ffc_result r = ffc_from_chars_i64_options(input, pend, base, &out, options);
+  if (r.outcome != expected_outcome) {
+    fprintf(stderr, "FAIL i64 \"%s\" base %d: got outcome %d, expected %d\n",
+            input, base, r.outcome, expected_outcome);
+    FAILS++;
+  }
+}
+
+static void expect_outcome_u64_options(const char *input, int base, ffc_parse_options options, ffc_outcome expected_outcome) {
+  size_t len = strlen(input);
+  char *pend = (char*)(input + len);
+  uint64_t out = 0;
+  ffc_result r = ffc_from_chars_u64_options(input, pend, base, &out, options);
+  if (r.outcome != expected_outcome) {
+    fprintf(stderr, "FAIL u64 \"%s\" base %d: got outcome %d, expected %d\n",
+            input, base, r.outcome, expected_outcome);
+    FAILS++;
+  }
+}
+
 static void verify_ptr_i32(const char *input, int base, const char *expected_tail) {
   size_t len = strlen(input);
   int32_t out = 0;
@@ -192,6 +240,44 @@ static void test_u64_invalid(void) {
   const char *cases[] = { "text", "text with 1002", "+50", " 50", "-50" };
   for (size_t i = 0; i < sizeof(cases)/sizeof(*cases); i++)
     expect_outcome_u64(cases[i], 10, FFC_OUTCOME_INVALID_INPUT);
+}
+
+/* -- parse options ------------------------------------------------- */
+
+static void test_i32_options(void) {
+  const char *cases[] = { "+50", " 50", "-50" };
+  ffc_parse_options options = {
+    .format = FFC_FORMAT_FLAG_ALLOW_LEADING_PLUS | FFC_FORMAT_FLAG_SKIP_WHITE_SPACE
+  };
+  for (size_t i = 0; i < sizeof(cases)/sizeof(*cases); i++)
+    expect_outcome_i32_options(cases[i], 10, options, FFC_OUTCOME_OK);
+}
+
+static void test_u32_options(void) {
+  const char *cases[] = { "+50", " 50" };
+  ffc_parse_options options = {
+    .format = FFC_FORMAT_FLAG_ALLOW_LEADING_PLUS | FFC_FORMAT_FLAG_SKIP_WHITE_SPACE
+  };
+  for (size_t i = 0; i < sizeof(cases)/sizeof(*cases); i++)
+    expect_outcome_u32_options(cases[i], 10, options, FFC_OUTCOME_OK);
+}
+
+static void test_i64_options(void) {
+  const char *cases[] = { "+50", " 50", "-50" };
+  ffc_parse_options options = {
+    .format = FFC_FORMAT_FLAG_ALLOW_LEADING_PLUS | FFC_FORMAT_FLAG_SKIP_WHITE_SPACE
+  };
+  for (size_t i = 0; i < sizeof(cases)/sizeof(*cases); i++)
+    expect_outcome_i64_options(cases[i], 10, options, FFC_OUTCOME_OK);
+}
+
+static void test_u64_options(void) {
+  const char *cases[] = { "+50", " 50" };
+  ffc_parse_options options = {
+    .format = FFC_FORMAT_FLAG_ALLOW_LEADING_PLUS | FFC_FORMAT_FLAG_SKIP_WHITE_SPACE
+  };
+  for (size_t i = 0; i < sizeof(cases)/sizeof(*cases); i++)
+    expect_outcome_u64_options(cases[i], 10, options, FFC_OUTCOME_OK);
 }
 
 /* -- out of range (decimal) ---------------------------------------- */
@@ -706,6 +792,11 @@ int main(void) {
   test_u32_invalid();
   test_i64_invalid();
   test_u64_invalid();
+
+  test_i32_options();
+  test_u32_options();
+  test_i64_options();
+  test_u64_options();
 
   test_i32_out_of_range();
   test_u32_out_of_range();
